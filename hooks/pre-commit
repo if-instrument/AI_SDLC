@@ -1,0 +1,268 @@
+#!/usr/bin/env bash
+# Git Pre-Commit Hook: gh-Only Identity, Governance Version Notifier, Sprint 0 Blueprint Enforcer (docs/00-11), Branch Governance & Security
+# Version: 3.2.0 | Universal AI-SDLC Framework
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_IDENTITY="$SCRIPT_DIR/../scripts/lib-identity.sh"
+UPDATE_CHECKER="$SCRIPT_DIR/../scripts/check-governance-update.sh"
+
+if [ -f "$LIB_IDENTITY" ]; then
+    # shellcheck source=/dev/null
+    source "$LIB_IDENTITY"
+else
+    echo "❌ [GIT HOOK ERROR] $LIB_IDENTITY tidak ditemukan." >&2
+    exit 1
+fi
+
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+
+# Skip checks for detached HEAD or during merge/rebase
+if [ "$BRANCH" = "HEAD" ] || [ -z "$BRANCH" ]; then
+    exit 0
+fi
+
+TEAM_BOARD=".ai/TEAM-BOARD.md"
+
+# ----------------------------------------------------------------------
+# 0. IDENTITAS MUTLAK VIA GITHUB CLI (FAIL-CLOSED)
+# ----------------------------------------------------------------------
+# Dilarang mengandalkan git config user.name / email!
+GH_USER=$(gov_get_auth_user)
+if [ $? -ne 0 ] || [ -z "$GH_USER" ]; then
+    echo "❌ [GIT HOOK REJECTED] Commit ditolak karena sesi GitHub CLI belum login atau tidak dapat diverifikasi." >&2
+    exit 1
+fi
+
+GH_USER_LOWER=$(echo "$GH_USER" | tr '[:upper:]' '[:lower:]')
+
+# ----------------------------------------------------------------------
+# 0.2. GOVERNANCE VERSION AUTO-CHECK (NON-BLOCKING NOTIFICATION)
+# ----------------------------------------------------------------------
+if [ -f "$UPDATE_CHECKER" ]; then
+    bash "$UPDATE_CHECKER" --check "$(pwd)" 2>/dev/null || true
+fi
+
+# ----------------------------------------------------------------------
+# 0.5. SPRINT 0 BLUEPRINT ENFORCER (docs/00 s.d. docs/11 WAJIB ADA SEBELUM KODE)
+# ----------------------------------------------------------------------
+STAGED_CODE=$(git diff --cached --name-only | grep -vE '^(\.governance/|\.ai/|docs/|README\.md|GEMINI\.md|CLAUDE\.md|agent\.md|\.cursorrules|\.gitignore|VERSION)' | grep -E '\.(py|ts|tsx|js|jsx|go|java|php|rb|rs|cs|cpp|c|swift|kt|vue|svelte|sql)$' || true)
+
+if [ -n "$STAGED_CODE" ] && [ "$SKIP_BLUEPRINT_CHECK" != "1" ]; then
+    MISSING_DOCS=()
+
+    # Mendukung skema v7.2.0 (docs/00 s.d. docs/11 dengan 05-infrastructure.md di hulu)
+    # serta backward compatibility pada proyek legacy yang sudah memiliki docs/00 s.d. docs/10
+    if [ -f "docs/05-database.md" ] && [ -f "docs/10-test-plan.md" ] && [ ! -f "docs/05-infrastructure.md" ]; then
+        REQUIRED_DOCS=(
+            "docs/00-project-overview.md"
+            "docs/01-requirements.md"
+            "docs/02-business-process.md"
+            "docs/03-prd.md"
+            "docs/04-architecture.md"
+            "docs/05-database.md"
+            "docs/06-api.md"
+            "docs/07-ui-ux.md"
+            "docs/08-security.md"
+            "docs/09-development-plan.md"
+            "docs/10-test-plan.md"
+        )
+    else
+        REQUIRED_DOCS=(
+            "docs/00-project-overview.md"
+            "docs/01-requirements.md"
+            "docs/02-business-process.md"
+            "docs/03-prd.md"
+            "docs/04-architecture.md"
+            "docs/05-infrastructure.md"
+            "docs/06-database.md"
+            "docs/07-api.md"
+            "docs/08-ui-ux.md"
+            "docs/09-security.md"
+            "docs/10-development-plan.md"
+            "docs/11-test-plan.md"
+        )
+    fi
+
+    for doc in "${REQUIRED_DOCS[@]}"; do
+        if [ ! -f "$doc" ]; then
+            MISSING_DOCS+=("$doc")
+        fi
+    done
+
+    if [ "${#MISSING_DOCS[@]}" -gt 0 ]; then
+        echo ""
+        echo "======================================================================"
+        echo "❌ [SPRINT 0 BLUEPRINT ENFORCER REJECTED] DOKUMEN DESAIN BELUM LENGKAP!"
+        echo "======================================================================"
+        echo "Anda mencoba melakukan commit file kode aplikasi:"
+        echo "$STAGED_CODE" | head -n 5 | sed 's/^/   - /'
+        echo ""
+        echo "Namun dokumen fondasi Sprint 0 (5-Stage Interactive Blueprinting) berikut"
+        echo "belum tersedia di repositori:"
+        for mdoc in "${MISSING_DOCS[@]}"; do
+            echo "   ❌ $mdoc"
+        done
+        echo ""
+        echo "Sesuai RULE 1.5 (.governance/CORE-RULES.md), AI dan Developer WAJIB"
+        echo "menyelesaikan wawancara mendalam & persetujuan bertahap (Stage 1 s.d. Stage 5)"
+        echo "untuk menghasilkan docs/00 s.d. docs/11 (termasuk Flowchart Bisnis, Arsitektur,"
+        echo "Infrastruktur & Deployment di 05-infrastructure.md, ERD Relasi Database,"
+        echo "Kontrak API, Mockup UI/UX, Security, dan Granular Sprint Backlog)"
+        echo "sebelum menulis atau meng-commit kode aplikasi!"
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+fi
+
+# Fungsi pencari cabang tugas milik pengguna aktif berdasarkan GitHub login
+find_user_branch() {
+    local target_user="$1"
+    local board_file="$2"
+    if [ -f "$board_file" ] && [ -n "$target_user" ]; then
+        awk -F'|' -v u="$target_user" '
+            $8 !~ /MERGED/ && tolower($6) ~ u {
+                gsub(/[`* ]/, "", $7);
+                if ($7 != "" && $7 !~ /Belum/) {
+                    print $7;
+                    exit;
+                }
+            }
+        ' "$board_file"
+    fi
+}
+
+# ----------------------------------------------------------------------
+# 1. ENFORCEMENT PADA CABANG TUGAS (task/*)
+# ----------------------------------------------------------------------
+if [[ "$BRANCH" =~ ^task/ ]]; then
+    # A. Isolasi Domain: Dilarang mengubah file tata kelola (.governance/) di branch task/*
+    STAGED_GOV=$(git diff --cached --name-only | grep -E '^\.governance/' || true)
+    if [ -n "$STAGED_GOV" ]; then
+        echo ""
+        echo "======================================================================"
+        echo "❌ [GIT HOOK REJECTED] PELANGGARAN ISOLASI DOMAIN!"
+        echo "======================================================================"
+        echo "Cabang aktif   : $BRANCH"
+        echo "File terlarang :"
+        echo "$STAGED_GOV" | sed 's/^/   - /'
+        echo ""
+        echo "Developer/AI pada cabang task/* DILARANG KERAS memodifikasi berkas"
+        echo "tata kelola (.governance/). Perubahan tata kelola hanya sah diajukan"
+        echo "di cabang integrasi (feature/*) oleh Project Owner."
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+
+    # B. Verifikasi Hak Akses Penugasan via GitHub Login
+    if [ -f "$TEAM_BOARD" ]; then
+        ASSIGNED=$(grep -F "$BRANCH" "$TEAM_BOARD" | head -n 1 | awk -F'|' '{print $6}' | tr -d '`*' | xargs)
+
+        if [ -n "$ASSIGNED" ] && [ "$ASSIGNED" != "PENDING_ASSIGNMENT" ] && [ "$ASSIGNED" != "PENDING_REASSIGNMENT" ] && [ "$ASSIGNED" != "UNASSIGNED" ]; then
+            ASSIGNED_LOWER=$(echo "$ASSIGNED" | tr '[:upper:]' '[:lower:]' | tr -d '@')
+
+            if [ "$GH_USER_LOWER" != "$ASSIGNED_LOWER" ]; then
+                echo ""
+                echo "======================================================================"
+                echo "❌ [GIT HOOK REJECTED] AKSES DITOLAK: BUKAN CABANG TUGAS ANDA!"
+                echo "======================================================================"
+                echo "Cabang aktif      : $BRANCH"
+                echo "Sesi GitHub aktif : @$GH_USER"
+                echo "Penugasan resmi   : @$ASSIGNED"
+                echo ""
+                echo "Akun Anda TIDAK memiliki hak akses commit pada cabang ini."
+                echo ""
+                MY_BRANCH=$(find_user_branch "$GH_USER_LOWER" "$TEAM_BOARD")
+                if [ -n "$MY_BRANCH" ]; then
+                    echo "Cabang tugas yang didelegasikan kepada akun Anda:"
+                    echo "   👉 $MY_BRANCH"
+                    echo ""
+                    echo "Silakan kembali ke cabang tugas Anda sendiri:"
+                    echo "   git checkout $MY_BRANCH"
+                else
+                    echo "Akun Anda saat ini belum memiliki penugasan cabang aktif pada .ai/TEAM-BOARD.md."
+                    echo "Silakan hubungi Project Owner untuk alokasi tugas."
+                fi
+                echo "======================================================================"
+                echo ""
+                exit 1
+            fi
+        fi
+    fi
+fi
+
+# ----------------------------------------------------------------------
+# 2. ENFORCEMENT PADA CABANG INTEGRASI FEATURE (feature/*)
+# ----------------------------------------------------------------------
+if [[ "$BRANCH" =~ ^feature/ ]]; then
+    # Periksa izin akun via GitHub Permission API
+    USER_PERM=$(gov_get_user_permission "$GH_USER")
+    
+    # Jika pengguna berizin admin, izinkan commit ke feature/*
+    if [ "$USER_PERM" != "admin" ]; then
+        # Jika bukan admin, periksa apakah pengguna tercatat sebagai worker aktif
+        IS_WORKER=0
+        if [ -f "$TEAM_BOARD" ]; then
+            FOUND_WORKER=$(awk -F'|' -v u="$GH_USER_LOWER" '
+                $8 !~ /MERGED/ && $7 ~ /^ *`?task\// {
+                    dev_lower = tolower($6);
+                    gsub(/[`* @]/, "", dev_lower);
+                    if (u != "" && dev_lower == u) {
+                        print 1;
+                        exit;
+                    }
+                }
+            ' "$TEAM_BOARD" 2>/dev/null || true)
+            if [ "$FOUND_WORKER" = "1" ]; then
+                IS_WORKER=1
+            fi
+        fi
+
+        if [ "$IS_WORKER" = "1" ]; then
+            echo ""
+            echo "======================================================================"
+            echo "❌ [GIT HOOK REJECTED] AKSES DITOLAK: BUKAN CABANG TUGAS ANDA!"
+            echo "======================================================================"
+            echo "Cabang aktif      : $BRANCH"
+            echo "Sesi GitHub aktif : @$GH_USER [Peran: WORKER]"
+            echo ""
+            echo "Sebagai Worker tanpa izin admin repositori, Anda DILARANG melakukan direct commit ke cabang integrasi ini."
+            echo ""
+            MY_BRANCH=$(find_user_branch "$GH_USER_LOWER" "$TEAM_BOARD")
+            if [ -n "$MY_BRANCH" ]; then
+                echo "Cabang tugas yang didelegasikan kepada akun Anda:"
+                echo "   👉 $MY_BRANCH"
+                echo ""
+                echo "Silakan kembali ke cabang tugas Anda sendiri dan ajukan Pull Request:"
+                echo "   git checkout $MY_BRANCH"
+            fi
+            echo "======================================================================"
+            echo ""
+            exit 1
+        fi
+    fi
+fi
+
+# ----------------------------------------------------------------------
+# 3. ENFORCEMENT PADA CABANG MASTER / DEVELOPMENT (Direct Commit Protection)
+# ----------------------------------------------------------------------
+if [ "$BRANCH" = "master" ] || [ "$BRANCH" = "development" ]; then
+    if [ "$ALLOW_DIRECT_COMMIT" != "1" ]; then
+        echo ""
+        echo "======================================================================"
+        echo "⚠️  [GIT HOOK WARNING] DIRECT COMMIT PADA CABANG UTAMA DILINDUNGI!"
+        echo "======================================================================"
+        echo "Cabang '$BRANCH' adalah cabang integrasi yang dilindungi."
+        echo "Seluruh perubahan idealnya melalui Pull Request dari branch feature/*."
+        echo "Jika ini adalah tindakan darurat yang sah dari Project Owner,"
+        echo "jalankan commit dengan prefix: ALLOW_DIRECT_COMMIT=1 git commit ..."
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+fi
+
+exit 0

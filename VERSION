@@ -1,0 +1,6 @@
+# Universal AI-SDLC Framework Version Manifest
+VERSION="7.2.0"
+RELEASE_DATE="2026-10-30"
+UPSTREAM_REPO="if-instrument/AI_SDLC"
+LOCAL_MASTER_DIR="/Users/imamfaisal/Documents/Other Project/AI_SDLC"
+RELEASE_HIGHLIGHTS="Agile Scrum Full Lifecycle + Sprint 0 5-Stage Interactive Blueprinting (docs/00-11 with Early Infrastructure at 05-infrastructure.md) + Zero-Approval Workspace Sandbox Splitting + Hybrid Cloud/Local Auto-Updater"

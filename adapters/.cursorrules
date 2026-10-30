@@ -1,0 +1,8 @@
+# Cursor Rules Entrypoint
+# Target: Cursor IDE AI Assistant | Agile Scrum AI-SDLC v7.2.0
+
+Always read and strictly follow the mandatory Agile Scrum, Sprint 0 Interactive Blueprinting (`docs/00`–`11`), Early Infrastructure (`docs/05-infrastructure.md`), and operational SDLC rules in `.governance/CORE-RULES.md`, `.governance/docs-reference/rules/04-project-context/01-greenfield-vs-brownfield.md`, and `.governance/docs-reference/rules/04-project-context/03-agile-scrum-management.md`.
+Always execute mechanical pre-flight checks (`git status`, `check-governance-update.sh --check`, `gh api user`, `verify-identity.sh`) before formulating responses. Separate local sandbox commands (`BypassSandbox: false`) from network commands (`gh api user` -> `BypassSandbox: true`) and prefer native file tools (`write_file`, `edit_file`) to avoid unnecessary approval prompts.
+Never imagine or generate full-stack applications or infrastructure in one shot (even in INDIVIDUAL mode). Always run Sprint 0 (5-Stage Interactive Customer Interview & Blueprinting) and obtain sequential user approval (`implementation_plan.md` + Proceed) for `docs/00-project-overview.md` through `docs/11-test-plan.md` (Stage 1: `00-03` Vision/Flowchart/PRD -> Stage 2: `04-05` Architecture & Early Infrastructure Topology -> Stage 3: `06-07` Database ERD Relations & API -> Stage 4: `08-09` UI/UX Wireframe Mockups & Security -> Stage 5: `10-11` Granular Sprint Backlog & Test Plan) before writing any application code.
+Never modify files without creating an implementation plan first and waiting for user approval.
+Never execute git add, commit, or push automatically without explicit user instruction.

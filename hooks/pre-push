@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# Git Pre-Push Hook: gh-Only Identity, Gate 2 Mechanical Enforcer & Branch Hygiene
+# Version: 3.0.0 | Universal AI-SDLC Framework
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_IDENTITY="$SCRIPT_DIR/../scripts/lib-identity.sh"
+
+if [ -f "$LIB_IDENTITY" ]; then
+    # shellcheck source=/dev/null
+    source "$LIB_IDENTITY"
+else
+    echo "❌ [GIT HOOK ERROR] $LIB_IDENTITY tidak ditemukan." >&2
+    exit 1
+fi
+
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+
+# Skip checks for detached HEAD
+if [ "$BRANCH" = "HEAD" ] || [ -z "$BRANCH" ]; then
+    exit 0
+fi
+
+TEAM_BOARD=".ai/TEAM-BOARD.md"
+
+# ----------------------------------------------------------------------
+# 0. IDENTITAS MUTLAK VIA GITHUB CLI (FAIL-CLOSED)
+# ----------------------------------------------------------------------
+GH_USER=$(gov_get_auth_user)
+if [ $? -ne 0 ] || [ -z "$GH_USER" ]; then
+    echo "❌ [GIT HOOK REJECTED] Push ditolak karena sesi GitHub CLI belum login atau tidak dapat diverifikasi." >&2
+    exit 1
+fi
+
+GH_USER_LOWER=$(echo "$GH_USER" | tr '[:upper:]' '[:lower:]')
+
+# ----------------------------------------------------------------------
+# 1. ENFORCEMENT PADA CABANG TUGAS (task/*) - TERMASUK KUNCI GATE 2
+# ----------------------------------------------------------------------
+if [[ "$BRANCH" =~ ^task/ ]]; then
+    if [ ! -f "$TEAM_BOARD" ]; then
+        exit 0
+    fi
+
+    ASSIGNED=$(grep -F "$BRANCH" "$TEAM_BOARD" | head -n 1 | awk -F'|' '{print $6}' | tr -d '`*' | xargs)
+
+    if [ -n "$ASSIGNED" ] && [ "$ASSIGNED" != "PENDING_ASSIGNMENT" ] && [ "$ASSIGNED" != "PENDING_REASSIGNMENT" ] && [ "$ASSIGNED" != "UNASSIGNED" ]; then
+        ASSIGNED_LOWER=$(echo "$ASSIGNED" | tr '[:upper:]' '[:lower:]' | tr -d '@')
+
+        if [ "$GH_USER_LOWER" != "$ASSIGNED_LOWER" ]; then
+            echo ""
+            echo "======================================================================"
+            echo "❌ [GIT HOOK REJECTED] PUSH DITOLAK: BUKAN CABANG TUGAS ANDA!"
+            echo "======================================================================"
+            echo "Cabang aktif      : $BRANCH"
+            echo "Sesi GitHub aktif : @$GH_USER"
+            echo "Penugasan resmi   : @$ASSIGNED"
+            echo ""
+            echo "Akun Anda TIDAK memiliki hak akses push pada cabang ini."
+            echo "======================================================================"
+            echo ""
+            exit 1
+        fi
+    fi
+
+    # ------------------------------------------------------------------
+    # KUNCI MEKANIS GATE 2 (Human Verification Gate)
+    # ------------------------------------------------------------------
+    # Cari ID tugas dari baris cabang di TEAM-BOARD (kolom ke-1 / field ke-2)
+    RAW_TASK_ID=$(grep -F "$BRANCH" "$TEAM_BOARD" | head -n 1 | awk -F'|' '{print $2}' | tr -d '`*' | xargs)
+    # Ubah spasi menjadi dash: misal "TASK-004 W2" -> "TASK-004-W2"
+    TASK_CLEAN=$(echo "$RAW_TASK_ID" | tr ' ' '-')
+
+    CHECKLIST_FILE=".ai/checklists/CHECKLIST-${TASK_CLEAN}.md"
+    if [ ! -f "$CHECKLIST_FILE" ]; then
+        # Coba fallback tanpa sub-worker jika ada: TASK-004
+        TASK_MAIN=$(echo "$TASK_CLEAN" | cut -d'-' -f1,2)
+        if [ -f ".ai/checklists/CHECKLIST-${TASK_MAIN}.md" ]; then
+            CHECKLIST_FILE=".ai/checklists/CHECKLIST-${TASK_MAIN}.md"
+        fi
+    fi
+
+    if [ ! -f "$CHECKLIST_FILE" ]; then
+        echo ""
+        echo "======================================================================"
+        echo "❌ [GATE 2 ENFORCER REJECTED] PUSH DITOLAK: CHECKLIST GATE 2 TIDAK DITEMUKAN!"
+        echo "======================================================================"
+        echo "Cabang aktif    : $BRANCH"
+        echo "Tugas           : $RAW_TASK_ID"
+        echo "Berkas dicari   : $CHECKLIST_FILE"
+        echo ""
+        echo "Sesuai tata kelola SDLC, push atau pembuatan PR dari cabang tugas (task/*)"
+        echo "WAJIB melewati verifikasi manual Human Developer (Gate 2)."
+        echo "Silakan susun berkas checklist dan lakukan pengujian manual terlebih dahulu."
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+
+    # Periksa apakah Gate 2 sudah ditandatangani [x] PASSED oleh manusia
+    IS_PASSED=$(grep -E '^[[:space:]]*-[[:space:]]*\[[xX]\][[:space:]]+PASSED' "$CHECKLIST_FILE" || true)
+    if [ -z "$IS_PASSED" ]; then
+        echo ""
+        echo "======================================================================"
+        echo "❌ [GATE 2 ENFORCER REJECTED] PUSH DITOLAK: GATE 2 BELUM PASSED!"
+        echo "======================================================================"
+        echo "Cabang aktif    : $BRANCH"
+        echo "Berkas checklist: $CHECKLIST_FILE"
+        echo ""
+        echo "Pengujian manual Gate 2 masih berstatus PENDING atau belum diverifikasi."
+        echo "Human Developer wajib melakukan pengujian empiris dan menandai checklist"
+        echo "menjadi '[x] PASSED' sebelum cabang ini diizinkan untuk di-push ke remote."
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+
+    echo "✅ [Gate 2 Verified] Checklist $CHECKLIST_FILE terverifikasi PASSED. Otorisasi push disetujui."
+fi
+
+# ----------------------------------------------------------------------
+# 2. ENFORCEMENT PADA CABANG INTEGRASI FEATURE (feature/*)
+# ----------------------------------------------------------------------
+if [[ "$BRANCH" =~ ^feature/ ]]; then
+    USER_PERM=$(gov_get_user_permission "$GH_USER")
+    
+    if [ "$USER_PERM" != "admin" ]; then
+        echo ""
+        echo "======================================================================"
+        echo "❌ [GIT HOOK REJECTED] PUSH DITOLAK: HAK AKSES INTEGRASI DIBATASI!"
+        echo "======================================================================"
+        echo "Cabang aktif      : $BRANCH"
+        echo "Sesi GitHub aktif : @$GH_USER (Permission: $USER_PERM)"
+        echo ""
+        echo "Hanya Project Owner (permission: admin) yang diizinkan melakukan push"
+        echo "langsung ke cabang integrasi feature/*."
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+fi
+
+# ----------------------------------------------------------------------
+# 3. PERLINDUNGAN CABANG UTAMA (master / development)
+# ----------------------------------------------------------------------
+if [ "$BRANCH" = "master" ] || [ "$BRANCH" = "development" ]; then
+    USER_PERM=$(gov_get_user_permission "$GH_USER")
+    if [ "$USER_PERM" != "admin" ]; then
+        echo ""
+        echo "======================================================================"
+        echo "❌ [GIT HOOK REJECTED] DIRECT PUSH KE CABANG UTAMA DILARANG KERAS!"
+        echo "======================================================================"
+        echo "Cabang '$BRANCH' hanya menerima penggabungan melalui Pull Request resmi."
+        echo "======================================================================"
+        echo ""
+        exit 1
+    fi
+fi
+
+exit 0
