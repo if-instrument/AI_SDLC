@@ -1,5 +1,5 @@
 # UNIVERSAL ENTERPRISE AGILE & SCRUM AI-SDLC FRAMEWORK PACKAGE
-# Version: 7.2.0 | Zero-Terminal Setup | Sprint 0 Interactive Blueprinting (`docs/00`–`11`), Early Infrastructure & Hybrid Auto-Updater
+# Version: 7.3.0 | Zero-Terminal Setup | Sprint 0 Interactive Blueprinting (`docs/00`–`11`), Early Infrastructure, Visual UI Mockups & Hybrid Auto-Updater
 
 Paket folder `.governance/` ini adalah standar tata kelola rekayasa perangkat lunak (*Software Development Life Cycle*) berbasis manajemen proyek **Agile & Scrum**, **Sprint 0 Interactive Customer Discovery & Blueprinting (`docs/00`–`11` dengan Penentuan Infrastruktur di Hulu `docs/05-infrastructure.md`)**, **Zero-Approval Workspace Sandbox**, dan **Hybrid Cloud/Local Auto-Updater**.
 
@@ -31,7 +31,7 @@ Buka ruang obrolan Asisten AI di repositori Anda, dan ketik:
      - **Stage 1 (`00`–`03`)**: Vision, Requirements, Business Process Flowchart & PRD.
      - **Stage 2 (`04`–`05`)**: System Architecture & **Early Infrastructure/Deployment Topology (`05-infrastructure.md`)** — *dikunci di awal sebelum Database/API/UI!*
      - **Stage 3 (`06`–`07`)**: Database ERD Relasi Tabel (`06-database.md`) & API Contracts (`07-api.md`).
-     - **Stage 4 (`08`–`09`)**: UI/UX Wireframe/Mockup (`08-ui-ux.md`) & Security/RBAC (`09-security.md`).
+     - **Stage 4 (`08`–`09`)**: UI/UX Visual Mockups (`08-ui-ux.md` — **wajib gambar visual `.png` via `image-generator` + `carousel` preview**, dilarang hanya teks/ASCII!) & Security/RBAC (`09-security.md`).
      - **Stage 5 (`10`–`11`)**: Granular Sprint Backlog (`10-development-plan.md`) & Multi-Gate Test Plan (`11-test-plan.md`).
    - **Zero-Approval Workspace Operations (`RULE 3.5`)**: Menggunakan tool file bawaan (`write_file`/`edit_file`) dan memisahkan perintah jaringan (`gh api user`) dari perintah lokal (`BypassSandbox: false`).
 

@@ -1,5 +1,5 @@
 # STRUKTUR DOKUMENTASI SEBAGAI SUMBER KEBENARAN TUNGGAL (SINGLE SOURCE OF TRUTH)
-# Version: 2.2.0 | Date: 2026-10-30 | Scope: Agile Scrum Documentation Hierarchy (`docs/00`–`11` with Early Infrastructure at `05`), Sequential Blueprint Approval Gates & Status Lifecycle
+# Version: 2.3.0 | Date: 2026-10-30 | Scope: Agile Scrum Documentation Hierarchy (`docs/00`–`11` with Early Infrastructure at `05` & Visual UI Mockups at `08`), Sequential Blueprint Approval Gates & Status Lifecycle
 
 ## 1. Hierarki Sumber Kebenaran (Sprint 0 System Blueprints)
 Seluruh implementasi perangkat lunak dan manajemen proyek Agile/Scrum tunduk mutlak pada dokumentasi sistem di folder `docs/` yang disusun secara sekuensial dari Hulu ke Hilir melalui **5 Tahap Wawancara & Blueprinting (Sprint 0)**:
@@ -14,10 +14,11 @@ docs/
 ├── 05-infrastructure.md       # [Stage 2] DI HULU! Target Hosting, Docker/Native, Engine DB/Cache, Port Mapping, .env & CI/CD
 ├── 06-database.md             # [Stage 3] Diagram ERD (erDiagram), relasi tabel (1:N, N:M), skema, indexing, seeder
 ├── 07-api.md                  # [Stage 3] Kontrak REST/WebSocket/gRPC, JSON payload, error model
-├── 08-ui-ux.md                # [Stage 4] Wireframe/Mockup ASCII/Visual per layar, navigasi & Screen Flow
+├── 08-ui-ux.md                # [Stage 4] Visual UI Mockup Images (image-generator .png), Screen Flow & Design Tokens
 ├── 09-security.md             # [Stage 4] Autentikasi, matriks RBAC, CORS, SSL, enkripsi & model ancaman
 ├── 10-development-plan.md     # [Stage 5] Granular Product Backlog, Estimasi Story Points & Sprint Roadmap
 ├── 11-test-plan.md            # [Stage 5] Skenario pengujian Multi-Gate & Definition of Done (DoD)
+├── assets/mockups/            # [Stage 4] Folder penyimpanan gambar Visual UI Mockup (.png) & preview HTML
 ├── changelog.md               # Riwayat versi rilis Increment (Semantic Versioning)
 ├── changes/                   # Arsip Change Request Backlog (CR-XXX.md)
 ├── decisions/                 # Arsip Architectural Decision Records (ADR-XXX.md)

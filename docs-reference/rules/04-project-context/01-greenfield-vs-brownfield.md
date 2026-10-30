@@ -1,5 +1,5 @@
 # PROTOKOL GREENFIELD (SPRINT 0 INTERACTIVE DISCOVERY) VS BROWNFIELD & GOVERNANCE AUTO-UPDATE
-# Version: 2.1.0 | Date: 2026-10-30 | Scope: 5-Stage Customer Interview (`docs/00`–`11` with Early Infrastructure at `05`), Brownfield Reverse-Documentation & Governance Version Upgrade
+# Version: 2.2.0 | Date: 2026-10-30 | Scope: 5-Stage Customer Interview (`docs/00`–`11` with Early Infrastructure at `05` & Visual UI Mockups at `08`), Brownfield Reverse-Documentation & Governance Version Upgrade
 
 > [!CAUTION]
 > **LARANGAN MUTLAK AI SOLO IMAGINATION & ONE-SHOT GENERATION**:
@@ -47,14 +47,16 @@ Saat menginisiasi proyek baru dari nol (*clean slate*), AI **WAJIB** memandu pen
 3. **Output Pasca-Proceed**:
    - Menulis `docs/06-database.md` dan `docs/07-api.md` (`Status: APPROVED`).
 
-### Stage 4: UI/UX Architecture (Wireframe/Mockup) & Security Standards (`docs/08`, `09`)
+### Stage 4: UI/UX Architecture (Visual Mockup Images) & Security Standards (`docs/08`, `09`)
 1. **Sesi Wawancara Wajib (Tanyakan ke Pengguna)**:
    - **UI/UX (`08-ui-ux.md`)**: Apa saja halaman/layar utama yang dibutuhkan, bagaimana struktur navigasinya (Sidebar, Topbar, Tab, Modal), preferensi gaya visual (Dark/Light mode, palet warna, komponen tabel/chart/form), dan alur perpindahan layar (*User Screen Flow*)?
    - **Security (`09-security.md`)**: Bagaimana mekanisme login/autentikasi (*JWT*, *Session*, *OAuth2/SSO*), pembagian hak akses peran (*RBAC*), CORS, dan enkripsi data sensitif?
-2. **Isi `implementation_plan.md` Stage 4**:
-   - **WAJIB** menampilkan **Wireframe / Mockup Visual (ASCII Layout Mockup / Diagram Struktur Layar)** untuk setiap halaman utama beserta diagram *Screen Flow* dan matriks RBAC/keamanan agar pengguna dapat mengoreksi tata letak UI & keamanan sebelum dikoding.
+2. **Isi `implementation_plan.md` Stage 4 (WAJIB VISUAL MOCKUP IMAGE, DILARANG HANYA TEKS/ASCII!)**:
+   - **WAJIB** memanggil subagent **`image-generator`** untuk men-generate **Gambar Visual UI Mockup (`.png`)** beresolusi tinggi untuk setiap layar utama berdasarkan hasil wawancara pengguna.
+   - Simpan file gambar di `docs/assets/mockups/<nama-layar>.png` dan salin ke folder artefak aktif (`<appDataDir>/brain/<conversation-id>/`), lalu **sematkan langsung (`![Nama Layar](/absolute/path/to/mockup.png)`) di dalam `implementation_plan.md`** (gunakan ````carousel` jika lebih dari 1 layar, serta opsional preview interaktif `generative_ui`).
+   - Sertakan juga diagram *Screen Flow* (`flowchart LR`), spesifikasi state (`Loading`, `Empty`, `Error`, `Success`), dan matriks RBAC/keamanan agar pengguna dapat melihat dan mengoreksi desain visual UI secara nyata sebelum menekan tombol **Proceed**.
 3. **Output Pasca-Proceed**:
-   - Menulis `docs/08-ui-ux.md` dan `docs/09-security.md` (`Status: APPROVED`).
+   - Menulis `docs/08-ui-ux.md` (lengkap dengan embed gambar mockup di `docs/assets/mockups/`) dan `docs/09-security.md` (`Status: APPROVED`).
 
 ### Stage 5: Granular Agile Sprint Backlog, Roadmap & Multi-Gate Test Plan (`docs/10`, `11`, `.ai/TEAM-BOARD.md`)
 1. **Sesi Wawancara Wajib (Tanyakan ke Pengguna)**:

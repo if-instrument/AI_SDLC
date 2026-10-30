@@ -1,5 +1,5 @@
 # Antigravity / Gemini Entrypoint Adapter
-# Target: Google Antigravity CLI & IDE Assistant | Agile Scrum AI-SDLC v7.2.0
+# Target: Google Antigravity CLI & IDE Assistant | Agile Scrum AI-SDLC v7.3.0
 
 > ### ⚠️ 10 LARANGAN MUTLAK TATA KELOLA AGILE SCRUM AI-SDLC (WAJIB DITAATI SETIAP SAAT)
 > 1. **DILARANG `git push`, `commit`, atau `add` OTOMATIS** tanpa perintah eksplisit pengguna.
@@ -8,7 +8,7 @@
 >    - **Stage 1 (`docs/00`–`03`)**: Vision, Requirements, Flowchart Proses Bisnis & PRD.
 >    - **Stage 2 (`docs/04`–`05`)**: System Architecture & **Early Infrastructure/Deployment Topology (`05-infrastructure.md`)** *(Hosting, Docker/Native, DB Engine, Port, `.env`, CI/CD — dikunci sebelum DB/API/UI!)*.
 >    - **Stage 3 (`docs/06`–`07`)**: Database ERD Relasi Tabel (`06-database.md`) & API Contracts (`07-api.md`).
->    - **Stage 4 (`docs/08`–`09`)**: Wireframe/Mockup UI/UX (`08-ui-ux.md`) & Security/RBAC (`09-security.md`).
+>    - **Stage 4 (`docs/08`–`09`)**: **Visual UI/UX Mockups (`08-ui-ux.md`)** *(WAJIB memanggil subagent `image-generator` untuk membuat gambar visual `.png` per layar utama, simpan di `docs/assets/mockups/`, salin ke folder artefak, dan tampilkan dengan `![Mockup](/abs/path.png)` / ````carousel` di `implementation_plan.md` — DILARANG hanya teks/ASCII!)* & Security/RBAC (`09-security.md`).
 >    - **Stage 5 (`docs/10`–`11`)**: Granular Sprint Backlog (`10-development-plan.md`) & Test Plan (`11-test-plan.md`).
 > 4. **DILARANG MEMINTA / MENYARANKAN COMMIT ATAU PUSH SEBELUM GATE 2 (DoD L2) LULUS** — serahkan checklist *Acceptance Criteria (Given-When-Then)* ke pengguna dan BERHENTI.
 > 5. **DILARANG MENGGUNAKAN `git config` SEBAGAI BUKTI IDENTITAS** — bukti sah identitas HANYA GitHub CLI (`gh api user`).
@@ -21,4 +21,5 @@
 Primary Governance Authority: [.governance/CORE-RULES.md](.governance/CORE-RULES.md)
 Sprint 0 & Discovery Protocol: [.governance/docs-reference/rules/04-project-context/01-greenfield-vs-brownfield.md](.governance/docs-reference/rules/04-project-context/01-greenfield-vs-brownfield.md)
 Infrastructure Standard: [.governance/docs-reference/rules/03-engineering-standards/05-infrastructure-and-deployment.md](.governance/docs-reference/rules/03-engineering-standards/05-infrastructure-and-deployment.md)
+UI/UX & Visual Mockup Standard: [.governance/docs-reference/rules/03-engineering-standards/06-ui-ux-and-visual-mockups.md](.governance/docs-reference/rules/03-engineering-standards/06-ui-ux-and-visual-mockups.md)
 Agile & Scrum Reference: [.governance/docs-reference/rules/04-project-context/03-agile-scrum-management.md](.governance/docs-reference/rules/04-project-context/03-agile-scrum-management.md)

@@ -1,5 +1,5 @@
 # UNIVERSAL AI-SDLC CORE OPERATIONAL RULES (SOP)
-# Version: 7.2.0 | Scope: Universal Agile Scrum, Sprint 0 Blueprinting (`docs/00`–`11`), Early Infrastructure, Zero-Approval Sandbox & Auto-Update | Single Source of Truth
+# Version: 7.3.0 | Scope: Universal Agile Scrum, Sprint 0 Blueprinting (`docs/00`–`11`), Early Infrastructure, Visual UI Mockups, Zero-Approval Sandbox & Auto-Update | Single Source of Truth
 
 ---
 
@@ -165,11 +165,12 @@ Setiap tahap wajib melalui siklus: **(1) Wawancara Interaktif dengan Pengguna $\
 3. **Stage 3: Database Architecture (ERD & Relasi) & API Contracts (`docs/06`, `07`)**:
    - **Wawancara Wajib**: Mengikuti engine database yang telah disepakati di `docs/05-infrastructure.md`, gali entitas data yang dibutuhkan, atribut/kolom penting, **relasi antar tabel (1:1, 1:N, N:M)**, aturan *foreign key / cascade*, indexing, data seeder awal, serta spesifikasi endpoint API (REST/WebSocket/gRPC), format payload request/response, dan kode error.
    - **Validasi Plan**: Wajib menampilkan **Diagram ERD (`erDiagram` Mermaid)** lengkap dengan relasi tabel dan skema kontrak endpoint API di `implementation_plan.md` agar pengguna dapat memverifikasi relasi database sebelum disahkan. Setelah disetujui (**Proceed**), buat `docs/06-database.md` dan `docs/07-api.md`.
-4. **Stage 4: UI/UX Architecture (Wireframe/Mockup) & Security Standards (`docs/08`, `09`)**:
+4. **Stage 4: UI/UX Architecture (Visual Mockup Images) & Security Standards (`docs/08`, `09`)**:
    - **Wawancara Wajib**:
      - **UI/UX (`08`)**: Gali daftar halaman/layar aplikasi, tata letak navigasi, gaya visual/tema warna, komponen interaktif di setiap layar (form, tabel, modal, chart), serta perilaku state *loading/empty/error*.
      - **Security (`09`)**: Gali mekanisme autentikasi/otorisasi (*JWT*, *OAuth2*, *Session*), matriks hak akses peran (*RBAC*), CORS, rate-limiting, dan enkripsi data sensitif.
-   - **Validasi Plan**: Wajib menampilkan **Wireframe / Mockup Layout (ASCII UI Mockup atau komponen visual)**, diagram *Screen Flow*, serta matriks RBAC/keamanan di `implementation_plan.md` untuk disetujui pengguna. Setelah disetujui (**Proceed**), buat `docs/08-ui-ux.md` dan `docs/09-security.md`.
+   - **Validasi Plan (WAJIB VISUAL MOCKUP IMAGE, DILARANG HANYA TEKS/ASCII!)**:
+     - AI **WAJIB** memanggil subagent **`image-generator`** untuk men-generate **Gambar Visual UI Mockup (`.png`)** untuk layar-layar utama aplikasi sesuai hasil wawancara, menyimpannya di `docs/assets/mockups/`, menyalinnya ke folder artefak, dan **menampilkan gambarnya secara langsung (`![Mockup](/abs/path.png)` + ````carousel` untuk multi-layar)** di dalam `implementation_plan.md` (serta dapat dilengkapi preview interaktif `generative_ui`), didampingi diagram *Screen Flow* dan matriks RBAC/keamanan (rujuk `06-ui-ux-and-visual-mockups.md`). Setelah disetujui (**Proceed**), buat `docs/08-ui-ux.md` dan `docs/09-security.md`.
 5. **Stage 5: Granular Agile Sprint Backlog, Roadmap & Multi-Gate Test Plan (`docs/10`, `11`, `.ai/TEAM-BOARD.md`)**:
    - **Wawancara Wajib**: Diskusikan pembagian tahapan pengerjaan ke dalam beberapa **Sprint / Task modular** (misal: `TASK-001` Infrastructure Provisioning & Database Schema, `TASK-002` Core Backend & Auth API, `TASK-003` Core Feature API, `TASK-004` Frontend UI & Integration) beserta prioritas dan skenario pengujiannya.
    - **Larangan One-Shot Task**: **DILARANG KERAS** menyatukan seluruh pembuatan aplikasi full-stack ke dalam satu `TASK-001` tunggal!
